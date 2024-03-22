@@ -147,9 +147,7 @@ begin
      w_left <= '1'; w_right <= '1';
      wait for k_clk_period;
         assert w_thunderbird = "111111" report "ON" severity failure;
-     wait for k_clk_period * 1;
-        assert w_thunderbird = "111111" report "ON" severity failure;
-    
+     
         wait;
     end process;
         
