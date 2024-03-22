@@ -36,18 +36,18 @@
 --|					can be changed by the inputs
 --|					
 --|
---|                 xxx State Encoding key
+--|                 One-Hot State Encoding key
 --|                 --------------------
 --|                  State | Encoding
 --|                 --------------------
---|                  OFF   | 
---|                  ON    | 
---|                  R1    | 
---|                  R2    | 
---|                  R3    | 
---|                  L1    | 
---|                  L2    | 
---|                  L3    | 
+--|                  OFF   | 10000000
+--|                  ON    | 01000000
+--|                  R1    | 00100000
+--|                  R2    | 00010000
+--|                  R3    | 00001000
+--|                  L1    | 00000100
+--|                  L2    | 00000010
+--|                  L3    | 00000001
 --|                 --------------------
 --|
 --|
@@ -87,22 +87,53 @@ library ieee;
  
 entity thunderbird_fsm is 
   port(
-	
+	i_clk, i_reset  : in    std_logic;
+    i_left, i_right : in    std_logic;
+    o_lights_L      : out   std_logic_vector(2 downto 0);
+    o_lights_R      : out   std_logic_vector(2 downto 0)
   );
 end thunderbird_fsm;
 
 architecture thunderbird_fsm_arch of thunderbird_fsm is 
+
+    signal f_S : std_logic_vector(7 downto 0) := x"80";
+    signal f_S_next : std_logic_vector(7 downto 0) := x"80";
 
 -- CONSTANTS ------------------------------------------------------------------
   
 begin
 
 	-- CONCURRENT STATEMENTS --------------------------------------------------------	
+	-- Next State Logic
+	f_S_next(0) <= f_S(1);
+	f_S_next(1) <= f_S(2);
+	f_S_next(2) <= f_S(7) and i_left and not i_right;
+	f_S_next(3) <= f_S(4);
+	f_S_next(4) <= f_S(5);
+	f_S_next(5) <= f_S(7) and i_right and not i_left;
+	f_S_next(6) <= f_S(7) and i_right and i_left;
+	f_S_next(7) <= (f_S(7) and not i_left and not i_right) or f_S(6) or f_S(3) or f_S(0); -- This should have some more logic
 	
     ---------------------------------------------------------------------------------
 	
+	-- Output Logic
+	o_lights_L(2) <= f_S(6) or f_S(0);                     -- gives LC
+	o_lights_L(1) <= f_S(6) or f_S(1) or f_S(0);           -- gives LB
+	o_lights_L(0) <= f_S(6) or f_S(2) or f_S(1) or f_S(0); -- gives LA
+	
+	o_lights_R(2) <= f_S(6) or f_S(3);                     -- gives RC
+	o_lights_R(1) <= f_S(6) or f_S(4) or f_S(3);           -- gives RB
+	o_lights_R(0) <= f_S(6) or f_S(5) or f_S(4) or f_S(3); -- gives RA
+	
 	-- PROCESSES --------------------------------------------------------------------
-    
+    register_proc : process (i_clk, i_reset)
+        begin
+             if i_reset = '1' then
+               f_S <= x"80";
+           elsif (rising_edge(i_clk)) then
+               f_S <= f_S_next;    -- next state becomes current state
+           end if;
+        end process register_proc;
 	-----------------------------------------------------					   
 				  
 end thunderbird_fsm_arch;
