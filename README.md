@@ -26,3 +26,6 @@ env:
 
 If successful then GHDL will quietly exit with a `0` code.
 If any of the `assert` statements fail **with** `severity error` then GHDL will cease the simulation and exit with non-zero code; this will also cause the workflow to fail.
+
+![Waveform from thunderbird_fsm_tb](<img width="922" alt="Screenshot 2024-03-22 152635" src="https://github.com/janaqusai/ece281-lab3/assets/156135874/68431758-843b-41f0-b33e-3aa1dac0994a">)
+
